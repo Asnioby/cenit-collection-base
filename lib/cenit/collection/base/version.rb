@@ -1,7 +1,7 @@
 module Cenit
   module Collection
     module Base
-      VERSION = "0.1.0"
+      VERSION = "0.0.1"
     end
   end
 end
