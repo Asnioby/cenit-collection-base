@@ -11,7 +11,8 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Cenit collection build class}
   spec.description   = %q{Base code to build Cenit Collection}
-  spec.homepage      = "http://www.cenitsaas.com"
+  spec.homepage      = "https://github.com/openjaf/cenit-collection-base"
+  spec.license       = %q{MIT}
 
   spec.rubyforge_project = "cenit-collection"
 
