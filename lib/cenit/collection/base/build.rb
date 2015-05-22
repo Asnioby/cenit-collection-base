@@ -52,27 +52,23 @@ module Cenit
           shared_data = JSON.parse(data)
           hash_data = shared_data['data']
           hash_model = []
-          models = ["flows","connection_roles","translators","events","connections","webhooks"]
+          models = %w(flows connection_roles translators events connections webhooks)
           models.collect do |model|
-            if hash_model = hash_data[model].to_a
-              hash_model.collect do |hash|
-                if file_name = format_filename(hash['name'])
-                  File.open(@base_path + '/' + model + '/' + file_name + '.json', mode: "w:utf-8") do |f|
-                    f.write(JSON.pretty_generate(hash))
-                  end
-                end
-              end
+            next unless hash_model = hash_data[model].to_a
+            hash_model.collect do |hash|
+              next unless file = filename_scape(hash['name'])
+              File.open("#{@base_path}/#{model}/#{file}.json", mode: "w:utf-8") { |f| f.write(JSON.pretty_generate(hash)) }
             end
           end
           libraries = hash_data['libraries']
           library_index = []
           libraries.collect do |library|
             if library_name = library['name']
-              library_file = format_filename (library_name)
-              FileUtils.mkpath(@base_path +'/libraries/' + library_file) unless File.directory?(@base_path +'/libraries/' + library_file)
+              library_file = filename_scape (library_name)
+              FileUtils.mkpath("#{@base_path}/libraries/#{library_file}") unless File.directory?("#{@base_path}/libraries/#{library_file}")
               library['schemas'].collect do |schema|
                 if schema_file = schema['uri']
-                  File.open(@base_path +'/libraries/' + library_file + '/' + schema_file, mode: "w:utf-8") do |f|
+                  File.open("#{@base_path}/libraries/#{library_file}/#{schema_file}", mode: "w:utf-8") do |f|
                     f.write(JSON.pretty_generate(JSON.parse(schema['schema'])))
                   end
                 end
@@ -80,13 +76,11 @@ module Cenit
               library_index << {'name' => library_name, 'file' => library_file}
             end
           end
-          File.open(@base_path +'/libraries/index.json', mode: "w:utf-8") do |f|
-            f.write(JSON.pretty_generate(library_index))
-          end
-          File.open(@base_path +'/index.json', mode: "w:utf-8") do |f|
-            f.write(JSON.pretty_generate(shared_data.except('data')))
-          end
-
+          File.open("#{@base_path}/libraries/index.json", mode: "w:utf-8") { |f| f.write(JSON.pretty_generate(library_index)) }
+          File.open("#{@base_path}/index.json", mode: "w:utf-8") { |f| f.write(JSON.pretty_generate(shared_data.except('data'))) }
+          return "Success Import"
+        rescue
+          return "Error impor json"
         end
 
         def shared_collection
@@ -94,6 +88,12 @@ module Cenit
           shared.deep_merge!(build_data)
           {"shared_collection" => shared}
         end
+
+        def sample_model(model)
+          open_sample(model)
+          #JSON.parse(open_sample(model))
+        end
+
 
         protected
 
@@ -132,10 +132,6 @@ module Cenit
           JSON.parse(open_head)
         end
 
-        def sample_model(model)
-          JSON.parse(open_sample(model))
-        end
-
         def open_json(file)
           File.open(file, mode: "r:utf-8").read
         rescue {}
@@ -147,7 +143,8 @@ module Cenit
         end
 
         def open_sample(model)
-          File.open(@base_path + "/support/sample/#{model}.json", mode: "r:utf-8").read
+          sample_dir = File.expand_path(File.join(*%w[ .. .. .. .. spec support sample ]), @base_path)
+          File.open(sample_dir + "/#{model}.json", mode: "r:utf-8").read
         rescue {}
         end
 
@@ -165,18 +162,11 @@ module Cenit
           val1.is_a?(Array) && val2.is_a?(Array) ? (val1 + val2).uniq : val2
         end
 
-        def format_filename(name)
+        def filename_scape(name)
           name.gsub(/[^\w\s_-]+/, '')
           .gsub(/(^|\b\s)\s+($|\s?\b)/, '\\1\\2')
           .gsub(/\s+/, '_')
           .downcase
-        end
-
-        def sanitize_filename(filename)
-          fn = filename.split /(?<=.)\.(?=[^.])(?!.*\.[^.])/m
-          fn.map! { |s| s.gsub /[^a-z0-9\-]+/i, '_' }
-          fn.join '.'
-          fn.to_s.downcase
         end
 
       end
