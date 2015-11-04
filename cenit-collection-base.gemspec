@@ -6,8 +6,8 @@ require 'cenit/collection/base'
 Gem::Specification.new do |spec|
   spec.name          = %q{cenit-collection-base}
   spec.version       = Cenit::Collection::Base::VERSION
-  spec.authors       = ["asnioby"]
-  spec.email         = ["asnioby@gmail.com"]
+  spec.authors       = ['Asnioby Hernandez', 'Maikel Arcia']
+  spec.email         = ['asnioby@gmail.com', 'macarci@gmail.com']
 
   spec.summary       = %q{Cenit collection build class}
   spec.description   = %q{Base code to build Cenit Collection}
